@@ -9,15 +9,16 @@
 
 
 ### libraries ----------------------------------------------------------------
+if (!require("raster")) install.packages("raster")
+if (!require("terra")) install.packages("terra")
+if (!require("sf")) install.packages("sf")
+if (!require("rgdal")) install.packages("rgdal")
+if (!require("tidyverse")) install.packages("tidyverse")
+if (!require("lubridate")) install.packages("lubridate")
+if (!require("patchwork")) install.packages("patchwork")
+if (!require("ncdf4")) install.packages("ncdf4")
+if (!require("reticulate")) install.packages("reticulate")
 
-library(tidyverse)
-library(raster)
-library(lubridate)
-library(sf)
-library(patchwork)
-library(terra)
-library(ncdf4)
-library(reticulate)
 
 
 ### Studyregion -------------------------------------------------------------

@@ -3,7 +3,10 @@
 ###################################################################
 
 ### ------------------------------------------------------------------------
-### script for plots -----
+### script for plots:
+### Figure 2
+### Figure 3
+### Figure S1
 ### ------------------------------------------------------------------------
 
 # some plots were done in the analysis scripts.
@@ -11,41 +14,31 @@
 
 
 ### libraries ----------------
-library(raster)
-library(terra)
-library(sf)
-library(rgdal)
-library(tidyverse)
-library(brms)
-library(bayesplot)
-library(loo)
-library(gridExtra)
-library(ggmcmc)
-library(mcmcplots) 
-library(stars)
-library(ggridges)
-library(viridis)
-library(bayesrules)
-library(ggdist)
+if (!require("terra")) install.packages("terra")
+if (!require("brms")) install.packages("brms")
+if (!require("raster")) install.packages("raster")
+if (!require("rgdal")) install.packages("rgdal")
+if (!require("tidyverse")) install.packages("tidyverse")
+if (!require("sf")) install.packages("sf")
+if (!require("ggplot2")) install.packages("ggplot2")
+if (!require("dplyr")) install.packages("dplyr")
 
 
 ### settings -------------------------------
 
-setwd("")
-
 #General temp directory 
-write("TMP = './firesize/firesize/tmp/'", file = file.path('./firesize/firesize/tmp/.Renviron')) 
+write("TMP = './data/tmp/'", file = file.path('~.Renviron')) 
 
 # Raster package
-rasterOptions(tmpdir = "./firesize/firesize/tmp/")
-terraOptions(memfrac=0.5, tempdir = "./firesize/firesize/tmp/")
+rasterOptions(tmpdir = "./data/tmp/")
+terraOptions(memfrac=0.5, tempdir = "./data/tmp/")
 tmpFiles(remove=TRUE, current=T, orphan=T)
 removeTmpFiles()
 
 ### load data --------------------------------------------------------------------------------------------
 
 # load df with extracted env variables
-complexes_df <- read.csv(paste0("./firesize/data/pres_extract_complexes_final_10082022.csv"))
+complexes_df <- read.csv(paste0("./data/results/pres_extract_complexes_final.csv"))
 
 # add biomes names
 biomes <- c(12, 5, 8, 6, 11, 4)
@@ -58,7 +51,7 @@ out <- complexes_df %>%
   filter(is.finite(complex_severity_nbr)) %>% drop_na()
 
 
-### Trend figure -------------------------------------------------------------------------------------------
+### Figure 2 -------------------------------------------------------------------------------------------
 
 plotdat <- out %>%
   bind_rows() %>%
@@ -68,7 +61,7 @@ plotdat <- out %>%
             complex_size_m2_max = max(complex_size_m2),
             complex_severity_nbr_max = max(complex_severity_nbr)) %>%
   ungroup() %>%
-  select(year, biome, n_fires, burnt_area, complex_size_m2_max, complex_severity_nbr_max) %>%
+  dplyr::select(year, biome, n_fires, burnt_area, complex_size_m2_max, complex_severity_nbr_max) %>%
   gather(key = key, value = value, -year, -biome)
 
 plotdat2 <- plotdat %>%
@@ -107,7 +100,7 @@ stacked_bar
 
 ggsave(
   paste0("burnt_area_proportion.png"),
-  path = "./firesize/figures/",
+  path = "./data/figures/",
   stacked_bar,
   width = 7, 
   height = 3.5,
@@ -163,7 +156,7 @@ pareto
 # save the plot
 ggsave(
   paste0("pareto_figure.png"),
-  path = "./firesize/figures/",
+  path = "./data/figures/",
   pareto,
   width = 2, 
   height = 2,
@@ -198,7 +191,6 @@ fin_df <- fin_df %>%
                           labels =c( "Europe", "Mediterranean", "Temperate broadleaf", "Temperate coniferous", "Temperate grasslands", "Boreal forests", "Tundra")))
 
 
-fin_df
 
 
 ### biomes plot -------------------------------------------------------------------------
@@ -206,13 +198,13 @@ fin_df
 # also part of figure 3
 
 # Raster package
-rasterOptions(tmpdir = "./firesize/firesize/tmp/")
-terraOptions(memfrac=0.5, tempdir = "./firesize/firesize/tmp/")
+rasterOptions(tmpdir = "./data/tmp/")
+terraOptions(memfrac=0.5, tempdir = "./data/tmp/")
 tmpFiles(remove=TRUE, current=T, orphan=T)
 removeTmpFiles()
 
 # read the grid
-grid <- read_sf("data/climate/climategrid_epsg3035_090122.gpkg")
+grid <- read_sf("./data/climate/climategrid_epsg3035_complexes.gpkg")
 grid_raster <- st_rasterize(grid)
 grid_r <- rast(grid_raster)
 
@@ -232,7 +224,7 @@ plot(biomes_gouped, col = c("#4477AA", "#66CCEE", "#228833", "#CCBB44", "#EE6677
 # load countries
 proj_leae <- "+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs" 
 
-eu_shp <- read_sf("data/countries/europe_lowres.shp")
+eu_shp <- read_sf("./data/countries/europe_lowres.shp")
 eu_shp <- st_transform(eu_shp, crs_grid)
 
 # mask biomes
@@ -243,16 +235,14 @@ biomes_masked <- terra::intersect(biomes_vect,eu_vect)
 
 # plot and save
 plot(biomes_masked, col = c("#228833", "#CCBB44", "#4477AA", "#EE6677", "#AA3377", "#66CCEE"), axes = F, lwd = 0.5)
-dev.print(tiff, "./firesize/figures/biomes_map.tif", width = 3.5, height = 3.5, units = "in", res = 300)
+dev.print(tiff, "./data/figures/biomes_map.tif", width = 3.5, height = 3.5, units = "in", res = 300)
 
 
 
-### Figure 1 trends ---------------------------------------------------------------------------------------------------
+### Figure S1 trends ---------------------------------------------------------------------------------------------------
 
 # load df with extracted env variables
-complexes_df <- read.csv(paste0("./firesize/data/pres_extract_complexes_final.csv"))
-dim(complexes_df)
-dim(na.omit(complexes_df))
+complexes_df <- read.csv(paste0("./data/results/pres_extract_complexes_final.csv"))
 
 # add biomes names
 biomes <- c(12, 5, 8, 6, 11, 4)
@@ -323,16 +313,17 @@ plot1
 
 
 ggsave(
-  filename = "metric_plots_europe.png", path = "./firesize/figures/",
+  filename = "metric_plots_europe.png", path = "./data/figures/",
   plot = marrangeGrob(plot1, nrow=1, ncol=4, top = NULL), 
   width = 7.5, height = 2, device = "png"
 )
 
 
 ### Supplementary plots --------------------------------------------------------------
+# Figure S7 & S8
 
 # load df with extracted env variables
-complexes_df <- read.csv(paste0("./firesize/data/pres_extract_complexes_final_10082022.csv"))
+complexes_df <- read.csv(paste0("./data/results/pres_extract_complexes_final.csv"))
 
 # add biomes names
 biomes <- c(12, 5, 8, 6, 11, 4)
@@ -360,12 +351,12 @@ dat_all <- out %>%
   ungroup()
 
 dat_model_size <- dat_all %>%
-  select(complex_size_m2_max, vpd_summer_mean_rollmax, biome, country) %>%
+  dplyr::select(complex_size_m2_max, vpd_summer_mean_rollmax, biome, country) %>%
   drop_na()
 
 
 # load model
-mod_size <- readRDS("./firesize/models/saved_models/final_size.rds")
+mod_size <- readRDS("./data/models/final_size.rds")
 
 # look at the effects
 posteriors_size <- as.matrix(mod_size)
@@ -406,7 +397,7 @@ p
 # save the plot
 ggsave(
   paste0("country_variation_model_effects_size.png"),
-  path = "./firesize/figures/",
+  path = "./data/figures/",
   p,
   width = 7, 
   height = 7,
@@ -414,9 +405,8 @@ ggsave(
 )
 
 
-
 # same for severity 
-mod_seve <- readRDS("./firesize/models/saved_models/final_seve.rds")
+mod_seve <- readRDS("./data/models/final_seve.rds")
 
 # look at the effects
 posteriors_size <- as.matrix(mod_seve)
@@ -456,7 +446,7 @@ p <- ggplot(random_slope_country_size, aes(x = value, y = country, fill = countr
 # save the plot
 ggsave(
   paste0("country_variation_model_effects_seve.png"),
-  path = "./firesize/figures/",
+  path = "./data/figures/",
   p,
   width = 7, 
   height = 7,

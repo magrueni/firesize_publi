@@ -1,36 +1,37 @@
 ###################################################################
-### M. Gruenig & C. Senf 29.11.2022 ###############################
+### M. Gruenig 29.11.2022           ###############################
 ###################################################################
 
 ### ------------------------------------------------------------------------
-### Script for data analysis -----
+### Script for future climate analysis                                 -----
 ### ------------------------------------------------------------------------
 
 
 ### libraries ----------------
-library(dplyr)
-library(ggplot2)
-library(sf)
-library(MetBrewer)
-library(tidyverse)
-library(brms)
+#libraries
+if (!require("terra")) install.packages("terra")
+if (!require("brms")) install.packages("brms")
+if (!require("raster")) install.packages("raster")
+if (!require("MetBrewer")) install.packages("MetBrewer")
+if (!require("tidyverse")) install.packages("tidyverse")
+if (!require("sf")) install.packages("sf")
+if (!require("ggplot2")) install.packages("ggplot2")
+if (!require("dplyr")) install.packages("dplyr")
 
 
 ### prepare data --------------------------------
-
-setwd("")
 
 # set seed for reproducability
 set.seed(14)
 
 # load the models
-mod_severity <- readRDS("./firesize/models/saved_models/final_seve.rds")
-mod_size <- readRDS("./firesize/models/saved_models/final_size.rds")
+mod_severity <- readRDS("./data/models/final_seve.rds")
+mod_size <- readRDS("./data/models/final_size.rds")
 
 # load the data
-dat_hist <- read_csv("./firesize/data/hist_data_allgrids.csv")
+dat_hist <- read_csv("./data/results/hist_data_allgrids.csv")
 dat_hist <- dat_hist %>% drop_na() %>% 
-  select(gridID, X1986:X2020, biome, country) %>%
+  dplyr::select(gridID, X1986:X2020, biome, country) %>%
   gather(key = "year", value = "vpd_summer_mean_rollmax", -gridID, -biome, -country) %>%
   mutate(year = as.integer(gsub("X", "", year)))
 
@@ -39,9 +40,9 @@ dat_hist_biome_prediction_biome <- dat_hist %>%
   summarize(vpd_summer_mean_rollmax = mean(vpd_summer_mean_rollmax)) %>% 
   ungroup()
 
-dat_fut_ssp245 <- read_csv(file = "./firesize/data/fut_data_allgrids_ssp245.csv")
+dat_fut_ssp245 <- read_csv(file = "./data/results/fut_data_allgrids_ssp245.csv")
 dat_fut_ssp245 <- dat_fut_ssp245 %>%
-  select(gridID, X2020:X2099, biome, country) %>%
+  dplyr::select(gridID, X2020:X2099, biome, country) %>%
   gather(key = "year", value = "vpd_summer_mean_rollmax", -gridID, -biome, -country) %>%
   mutate(year = as.integer(gsub("X", "", year)))
 
@@ -51,9 +52,9 @@ dat_fut_ssp245_biome_prediction_biome <- dat_fut_ssp245 %>%
   ungroup()
 
 
-dat_fut_ssp585 <- read_csv(file = "./firesize/data/fut_data_allgrids_ssp585.csv")
+dat_fut_ssp585 <- read_csv(file = "./data/results/fut_data_allgrids_ssp585.csv")
 dat_fut_ssp585 <- dat_fut_ssp585 %>%
-  select(gridID, X2020:X2099, biome, country) %>%
+  dplyr::select(gridID, X2020:X2099, biome, country) %>%
   gather(key = "year", value = "vpd_summer_mean_rollmax", -gridID, -biome, -country) %>%
   mutate(year = as.integer(gsub("X", "", year)))
 
@@ -226,7 +227,7 @@ p <- p_size + theme(axis.text.x = element_blank(),
 
 p
 
-ggsave("./firesize/figures/future_simulations.png", p, width = 7.5, height = 3)
+ggsave("./data/figures/future_simulations.png", p, width = 7.5, height = 3)
 
 
 ## extract some numbers
@@ -242,6 +243,7 @@ diff %>% mutate(diff_prct = max/min * 100,
   
                                                 
 ### Probability of extremely large fires ------------------------------------------------
+
 # add continental scale predictions
 dat_hist_biome_prediction_continent <- dat_hist %>%
   group_by(year) %>%
@@ -339,7 +341,7 @@ p <- ggplot() +
 
 p
 
-ggsave("./firesize/figures/future_simulations_extremely_large_fires_ssp585.png", p, width = 3.5, height = 3.5)
+#ggsave("./data/figures/future_simulations_extremely_large_fires_ssp585.png", p, width = 3.5, height = 3.5)
 
 
 p <- ggplot() +
@@ -361,16 +363,6 @@ p <- ggplot() +
 
 p
 
-ggsave("./firesize/figures/future_simulations_extremely_large_fires_SSP245.png", p, width = 3.5, height = 3.5)
+#ggsave("./data/figures/future_simulations_extremely_large_fires_SSP245.png", p, width = 3.5, height = 3.5)
 
 
-# get some values
-extreme_hist %>% filter(biome == "Boreal forests") %>% filter(year %in% 1986:2020) %>% summarise(mean = mean(p_extreme))
-max <- extreme_fut_ssp585 %>% filter(biome == "Boreal forests")
-max(max$p_extreme)
-extreme_hist %>% filter(biome == "Temperate grasslands") %>% filter(year %in% 1986:2020) %>% summarise(mean = mean(p_extreme))
-max <- extreme_fut_ssp585 %>% filter(biome == "Temperate grasslands")
-max(max$p_extreme)
-extreme_hist %>% filter(biome == "Temperate coniferous") %>% filter(year %in% 1986:2020) %>% summarise(mean = mean(p_extreme))
-max <- extreme_fut_ssp585 %>% filter(biome == "Temperate coniferous")
-max(max$p_extreme)

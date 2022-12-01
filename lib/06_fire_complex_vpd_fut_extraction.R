@@ -1,32 +1,33 @@
 ###################################################################
-### M. Gruenig & C. Senf 29.11.2022 ###############################
+### M. Gruenig 29.11.2022           ###############################
 ###################################################################
 
 ### ------------------------------------------------------------------------
-### Script to extract future VPD data for fire complexes -----
+### Script to extract future VPD data for fire complexes
+### As this may use some run time, we provide the resulting tables in the data/results folder
 ### ------------------------------------------------------------------------
 
 
-#librs
-library(terra)
-library(sf)
-library(raster)
-library(rgdal)
-library(tidyverse)
-library(sf)
-library(exactextractr)
-library(layer)
-library(stars)
-library(maptools)
+#libraries
+if (!require("terra")) install.packages("terra")
+if (!require("sf")) install.packages("sf")
+if (!require("raster")) install.packages("raster")
+if (!require("rgdal")) install.packages("rgdal")
+if (!require("tidyverse")) install.packages("tidyverse")
+if (!require("sf")) install.packages("sf")
+if (!require("exactextractr")) install.packages("exactextractr")
+if (!require("layer")) install.packages("layer")
+if (!require("stars")) install.packages("stars")
+if (!require("maptools")) install.packages("maptools")
+if (!require("dplyr")) install.packages("dplyr")
 
-setwd("")
 
 #General temp directory 
-write("TMP = './firesize/tmp/'", file = file.path('~.Renviron')) 
+write("TMP = './tmp/'", file = file.path('~.Renviron')) 
 
 # Raster package
-rasterOptions(tmpdir = "./firesize/tmp/")
-terraOptions(memfrac=0.5, tempdir = "./firesize/tmp/")
+rasterOptions(tmpdir = "./tmp/")
+terraOptions(memfrac=0.5, tempdir = "./tmp/")
 tmpFiles(remove=TRUE, current=T, orphan=T)
 removeTmpFiles()
 
@@ -34,12 +35,13 @@ removeTmpFiles()
 proj_leae <- "+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs" 
 
 # countries shp
-countries <- list.files("data/countries", pattern="*.shp", full.names = T)
+countries <- list.files("./data/countries", pattern="*.shp", full.names = T)
 countries <- countries[-c(12,13)] # remove europe shp
 
-#download.file("http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/cultural/ne_10m_admin_0_countries.zip", "countries.zip")
+# donload countries for mapping
+download.file("http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/cultural/ne_10m_admin_0_countries.zip", "countries.zip")
 # Then unzip
-#unzip("countries.zip")
+unzip("countries.zip")
 
 # Read in the shapefile
 world <- readShapeSpatial("ne_10m_admin_0_countries.shp")
@@ -71,11 +73,11 @@ for(y in 1986:2020){
     gcm_stack <- rast()
     
     for(g in gcms){
-      gcm_stack <-  c(gcm_stack, rast(paste0("./summer_vpd/vpd_summer_",y, "_", g, "_ssp585_cmip6_biascor.tif")))
+      gcm_stack <-  c(gcm_stack, rast(paste0("./data/climate/cmip6/vpd_summer_",y, "_", g, "_ssp585_cmip6_biascor.tif")))
     }
 
     for(g in gcms){
-      gcm_stack <-  c(gcm_stack, rast(paste0("./summer_vpd/vpd_summer_",y, "_", g, "_ssp245_cmip6_biascor.tif")))
+      gcm_stack <-  c(gcm_stack, rast(paste0("./data/climate/cmip6/vpd_summer_",y, "_", g, "_ssp245_cmip6_biascor.tif")))
     }
 
     summer_vpd <- terra::app(gcm_stack, mean)
@@ -85,7 +87,7 @@ for(y in 1986:2020){
     gcm_stack <- rast()
     
     for(g in gcms){
-      gcm_stack <-  c(gcm_stack, rast(paste0("./summer_vpd/vpd_summer_",y, "_", g, "_historical_cmip6_biascor.tif")))
+      gcm_stack <-  c(gcm_stack, rast(paste0("./data/climate/cmip6/vpd_summer_",y, "_", g, "_historical_cmip6_biascor.tif")))
     }
     
     summer_vpd <- terra::app(gcm_stack, mean)
@@ -100,11 +102,11 @@ for(y in 1986:2020){
     gcm_stack <- rast()
     
     for(g in gcms){
-      gcm_stack <-  c(gcm_stack, rast(paste0("./summer_vpd/vpd_summer_", year_prev, "_", g, "_ssp585_cmip6_biascor.tif")))
+      gcm_stack <-  c(gcm_stack, rast(paste0("./data/climate/cmip6/vpd_summer_", year_prev, "_", g, "_ssp585_cmip6_biascor.tif")))
     }
     
     for(g in gcms){
-      gcm_stack <-  c(gcm_stack, rast(paste0("./summer_vpd/vpd_summer_", year_prev, "_", g, "_ssp245_cmip6_biascor.tif")))
+      gcm_stack <-  c(gcm_stack, rast(paste0("./data/climate/cmip6/vpd_summer_", year_prev, "_", g, "_ssp245_cmip6_biascor.tif")))
     }
     
     prev_summer_vpd <- terra::app(gcm_stack, mean)
@@ -114,7 +116,7 @@ for(y in 1986:2020){
     gcm_stack <- rast()
     
     for(g in gcms){
-      gcm_stack <-  c(gcm_stack, rast(paste0("./summer_vpd/vpd_summer_", year_prev, "_", g, "_historical_cmip6_biascor.tif")))
+      gcm_stack <-  c(gcm_stack, rast(paste0("./data/climate/cmip6/vpd_summer_", year_prev, "_", g, "_historical_cmip6_biascor.tif")))
     }
     
     prev_summer_vpd <- terra::app(gcm_stack, mean)
@@ -129,11 +131,11 @@ for(y in 1986:2020){
     gcm_stack <- rast()
     
     for(g in gcms){
-      gcm_stack <-  c(gcm_stack, rast(paste0("./summer_vpd/vpd_summer_", year_aftr, "_", g, "_ssp585_cmip6_biascor.tif")))
+      gcm_stack <-  c(gcm_stack, rast(paste0("./data/climate/cmip6/vpd_summer_", year_aftr, "_", g, "_ssp585_cmip6_biascor.tif")))
     }
     
     for(g in gcms){
-      gcm_stack <-  c(gcm_stack, rast(paste0("./summer_vpd/vpd_summer_", year_aftr, "_", g, "_ssp245_cmip6_biascor.tif")))
+      gcm_stack <-  c(gcm_stack, rast(paste0("./data/climate/cmip6/vpd_summer_", year_aftr, "_", g, "_ssp245_cmip6_biascor.tif")))
     }
     
     aftr_summer_vpd <- terra::app(gcm_stack, mean)
@@ -143,7 +145,7 @@ for(y in 1986:2020){
     gcm_stack <- rast()
     
     for(g in gcms){
-      gcm_stack <-  c(gcm_stack, rast(paste0("./summer_vpd/vpd_summer_", year_aftr, "_", g, "_historical_cmip6_biascor.tif")))
+      gcm_stack <-  c(gcm_stack, rast(paste0("./data/climate/cmip6/vpd_summer_", year_aftr, "_", g, "_historical_cmip6_biascor.tif")))
     }
     
     aftr_summer_vpd <- terra::app(gcm_stack, mean)
@@ -199,7 +201,7 @@ df_full <- df_full %>% mutate(biome = factor(BIOME,
                               country = gsub(" ", "", country),
                               country = gsub("northmacedonia", "macedonia", country))
 
-df_full <- cbind(gridID = 1:nrow(df_full), df_full %>% select(X1986:X2020, biome, country))
+df_full <- cbind(gridID = 1:nrow(df_full), df_full %>% dplyr::select(X1986:X2020, biome, country))
 #df_full <- df_full %>% st_drop_geometry()
 
 write.csv(df_full, paste0("./data/hist_data_allgrids.csv"), row.names = F)
@@ -208,9 +210,6 @@ write.csv(df_full, paste0("./data/hist_data_allgrids.csv"), row.names = F)
 ### now do the same for the future data 2020  - 2100 ----------------------------------------
 
 # loop over all countries to extract the data 
-
-
-
 gcms <- c("FIO-ESM-2-0", "CMCC-ESM2", "MPI-ESM1-2-LR", "EC-Earth3-Veg-LR", "CNRM-CM6-1")
 ssps <- c("ssp245", "ssp585")#
 
@@ -231,7 +230,7 @@ for(c in ssps){
     gcm_stack <- rast()
     
     for(g in gcms){
-      gcm_stack <-  c(gcm_stack, rast(paste0("./summer_vpd/vpd_summer_",y, "_", g, "_", c, "_cmip6_biascor.tif")))
+      gcm_stack <-  c(gcm_stack, rast(paste0("./data/climate/cmip6/vpd_summer_",y, "_", g, "_", c, "_cmip6_biascor.tif")))
     }
 
     summer_vpd <- terra::app(gcm_stack, mean)
@@ -240,7 +239,7 @@ for(c in ssps){
     gcm_stack <- rast()
     
     for(g in gcms){
-      gcm_stack <-  c(gcm_stack, rast(paste0("./summer_vpd/vpd_summer_",year_prev, "_", g, "_", c, "_cmip6_biascor.tif")))
+      gcm_stack <-  c(gcm_stack, rast(paste0("./data/climate/cmip6/vpd_summer_",year_prev, "_", g, "_", c, "_cmip6_biascor.tif")))
     }
     
     prev_summer_vpd <- terra::app(gcm_stack, mean)
@@ -249,7 +248,7 @@ for(c in ssps){
     gcm_stack <- rast()
     
     for(g in gcms){
-      gcm_stack <-  c(gcm_stack, rast(paste0("./summer_vpd/vpd_summer_",year_aftr, "_", g, "_", c, "_cmip6_biascor.tif")))
+      gcm_stack <-  c(gcm_stack, rast(paste0("./data/climate/cmip6/vpd_summer_",year_aftr, "_", g, "_", c, "_cmip6_biascor.tif")))
     }
     
     aftr_summer_vpd <- terra::app(gcm_stack, mean)
@@ -288,7 +287,6 @@ for(c in ssps){
   
   df_full <- as.data.frame(df_biome) %>% left_join(as.data.frame(df_countries[, c("SOVEREIGNT", "geometry")]), by = "geometry")
   
-  #df_countries <- st_intersection(df_sf[, c("geometry")], all_countries)
   df_full <- df_full %>% mutate(biome = factor(BIOME, 
                                                labels = c("Temperate Broadleaf",
                                                           "Temperate Coniferous",
@@ -302,41 +300,10 @@ for(c in ssps){
                                 country = gsub(" ", "", country),
                                 country = gsub("northmacedonia", "macedonia", country))
   
-  df_full <- cbind(gridID = 1:nrow(df_full), df_full %>% select(X2020:X2099, biome, country))
+  df_full <- cbind(gridID = 1:nrow(df_full), df_full %>% dplyr::select(X2020:X2099, biome, country))
   
-  write.csv(df_full, paste0("./data/fut_data_allgrids_", c, ".csv"), sep = ",", row.names = F)
+  write.csv(df_full, paste0("./data/results/fut_data_allgrids_", c, ".csv"), sep = ",", row.names = F)
 
 }
 
-#### check visually -----
-df_hist <- read.csv("./data/hist_data_allgrids.csv", sep = ",") 
-df_hist <- df_hist %>% select(gridID, X1986:X2020, biome) %>% 
-  gather(key = "year", value = "value", -gridID, -biome) %>% 
-  mutate(year = gsub("X", "", year)) %>% group_by(biome, year) %>% 
-  mutate(value =  as.numeric(value)) %>% summarise(value = mean(value))
-
-
-df_fut <- read.csv("./data/fut_data_allgrids_ssp585.csv", sep = ",") 
-df_fut <- df_fut %>% select(gridID, X2021:X2098, biome) %>% 
-  gather(key = "year", value = "value", -gridID, -biome) %>% 
-  mutate(year = gsub("X", "", year)) %>% group_by(biome, year) %>% summarise(value = mean(value))
-
-df_full <- rbind(df_hist, df_fut)
-
-# add ERA5 data
-complexes_df <- read.csv(paste0("./data/pres_extract_complexes_final.csv"))
-dim(complexes_df)
-dim(na.omit(complexes_df))
-biomes <- c(12, 5, 8, 6, 11, 4)
-names_biomes <- c("Mediterranean", "Temperate Coniferous", "Temperate Grasslands", "Boreal Forests", "Tundra", "Temperate Broadleaf")
-biomes_df <- data.frame(cbind(as.numeric(biomes), names_biomes))
-complexes_df <- cbind(complexes_df, Biome = biomes_df$names_biomes[match(complexes_df$biom, biomes_df$V1)]) 
-
-dat_era <- complexes_df %>% select(year, Biome, vpd_summer) %>% group_by(Biome, year) %>% summarise(value = mean(vpd_summer))
-
-ggplot() +
-  geom_line(dat_era, mapping = aes(x = as.integer(year), y = value), col = "blue") +
-  geom_line(df_hist, mapping = aes(x = as.integer(year), y = value), col = "red") +
-  geom_line(df_fut,  mapping = aes(x = as.integer(year), y = value)) +
-  facet_wrap(~biome)
 

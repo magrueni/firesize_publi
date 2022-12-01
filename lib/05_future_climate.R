@@ -113,7 +113,6 @@ for(v in variables){
       )
       
       
-      
       # Start downloading the data, the path of the file
       # will be returned as a variable (ncfile)
       ncfile <- wf_request(user = UID,
@@ -133,28 +132,26 @@ for(v in variables){
 ### ---------------------------------------------------------------
 
 
-# Packages ----------------------------------------------------------------
+### Packages ----------------------------------------------------------------
 
+if (!require("tidyverse")) install.packages("tidyverse")
+if (!require("raster")) install.packages("raster")
+if (!require("lubridate")) install.packages("lubridate")
+if (!require("sf")) install.packages("sf")
+if (!require("patchwork")) install.packages("patchwork")
+if (!require("terra")) install.packages("terra")
+if (!require("ncdf4")) install.packages("ncdf4")
+if (!require("weathermetrics")) install.packages("weathermetrics")
+if (!require("raster")) install.packages("raster")
 
-library(tidyverse)
-library(raster)
-library(lubridate)
-library(sf)
-library(patchwork)
-library(terra)
-library(ncdf4)
-library(weathermetrics)
-library(raster)
 
 # Studyregion -------------------------------------------------------------
 
-setwd("")
-
-studyregion <- read_sf("./climate/climategrid_epsg3035.gpkg")
+studyregion <- read_sf("./data/climate/climategrid_epsg3035_complexes.gpkg")
 
 studyregion_latlng <- st_transform(studyregion, "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 
-cntrs <- read_sf("./firesize/data/countries/europe.shp")
+cntrs <- read_sf("./data/countries/europe.shp")
 
 proj_wgs84 <- "+proj=longlat +datum=WGS84 +no_defs"
 proj_nc <- "+proj=ob_tran +o_proj=longlat +o_lon_p=-162 +o_lat_p=39.25 +lon_0=180"
@@ -162,7 +159,7 @@ proj_leae <- "+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GR
 
 
 ### historical data ----------
-ncs <- list.files("./climatedata/euro-cordex/ssp_scenarios/v3", pattern = ".nc")
+ncs <- list.files("./data/climate/cmip6", pattern = ".nc")
 historical_fils <- ncs[grepl("historical", ncs)]
 
 
@@ -172,13 +169,13 @@ rcp <- "historical"
 for(g in gcms){
   
   tasmax_file <- historical_fils[grepl(g, historical_fils) & grepl("tasmax_", historical_fils)]
-  tasmax_rast <- rast(paste0("./climatedata/euro-cordex/ssp_scenarios/v3/", tasmax_file))
+  tasmax_rast <- rast(paste0("./data/climate/cmip6/", tasmax_file))
   
   tasmin_file <- historical_fils[grepl(g, historical_fils) & grepl("tasmin_", historical_fils)]
-  tasmin_rast <- rast(paste0("./climatedata/euro-cordex/ssp_scenarios/v3/", tasmin_file))
+  tasmin_rast <- rast(paste0("./data/climate/cmip6/", tasmin_file))
   
   hur_file <- historical_fils[grepl(g, historical_fils) & grepl("hur_", historical_fils)]
-  hur_rast <- rast(paste0("./climatedata/euro-cordex/ssp_scenarios/v3/", hur_file))
+  hur_rast <- rast(paste0("./data/climate/cmip6/", hur_file))
   
   
   tas_stack <- stack()
@@ -238,7 +235,7 @@ for(g in gcms){
     #df_extract <- cbind(df_extract, extract(vpd, df)[,2])
     
     plot(vpd, main = paste0(g, " ", year))
-    terra::writeRaster(vpd, paste0("./climatedata/euro-cordex/yearly/summer_vpd/vpd_summer_",year,"_", g, "_historical_cmip6.tif"), overwrite = T)
+    terra::writeRaster(vpd, paste0("./data/climate/cmip6/vpd_summer_",year,"_", g, "_historical_cmip6.tif"), overwrite = T)
     
     
     
@@ -251,7 +248,7 @@ for(g in gcms){
 era5_vpd <- stack()
 for(k in 1986:2014){
   
-  era5_vpd <- stack(era5_vpd, raster(paste0("./climatedata/era5/summer_vpd/summer_vpd_", k, ".tif")))
+  era5_vpd <- stack(era5_vpd, raster(paste0("./data/climate/vpd/summer_vpd_", k, ".tif")))
   
   
 }
@@ -271,7 +268,7 @@ for(g in 1:length(gcms)){
   gcm_vpd <- stack()
   for(k in 1986:2014){
     
-    gcm_vpd <- stack(gcm_vpd, raster(paste0("./climatedata/euro-cordex/yearly/summer_vpd/vpd_summer_",k,"_", gcm, "_historical_cmip6.tif")))
+    gcm_vpd <- stack(gcm_vpd, raster(paste0("./data/climate/cmip6/vpd_summer_", k,"_", gcm, "_historical_cmip6.tif")))
     
   }
   
@@ -284,7 +281,7 @@ for(g in 1:length(gcms)){
   bias <- era5_mean - gcm_mean_proj
   assign(paste0(gcm_short, "_bias"), bias)
   
-  terra::writeRaster(bias, paste0("./climatedata/euro-cordex/yearly/summer_vpd/vpd_summer_", gcm, "_bias.tif"), overwrite = T)
+  terra::writeRaster(bias, paste0("./data/climate/cmip6/vpd_summer_", gcm, "_bias.tif"), overwrite = T)
   
   tmpFiles(remove = T)
   removeTmpFiles(h=0.5)
@@ -299,7 +296,7 @@ vpd_calc <- function(t, td, c1 = 0.611, c2 = 17.67, c3 = 243.5) {
 df <- as.data.frame(cbind(expand.grid(c(3000000, 4000000, 5000000, 6000000), c(2000000, 3000000,4000000,5000000))))
 df_extract <- NULL
 
-ncs <- list.files("./climatedata/euro-cordex/ssp_scenarios/v3", pattern = ".nc")
+ncs <- list.files("./data/climate/cmip6", pattern = ".nc")
 scenarios <- c("ssp245")#"ssp585", 
 for(s in scenarios){
   
@@ -315,25 +312,25 @@ for(s in scenarios){
     
     
     tasmax_file <- scenario_files[grepl(gcm, scenario_files) & grepl("tasmax_", scenario_files)]
-    tasmax_rast <- rast(paste0("./climatedata/euro-cordex/ssp_scenarios/v3/", tasmax_file))
+    tasmax_rast <- rast(paste0("./data/climate/cmip6/", tasmax_file))
     
     tasmin_file <- scenario_files[grepl(gcm, scenario_files) & grepl("tasmin_", scenario_files)]
-    tasmin_rast <- rast(paste0("./climatedata/euro-cordex/ssp_scenarios/v3/", tasmin_file))
+    tasmin_rast <- rast(paste0("./data/climate/cmip6/", tasmin_file))
     
     hur_file <- scenario_files[grepl(gcm, scenario_files) & grepl("hur_", scenario_files)]
-    hur_rast <- rast(paste0("./climatedata/euro-cordex/ssp_scenarios/v3/", hur_file))
+    hur_rast <- rast(paste0("./data/climate/cmip6/", hur_file))
     
     
     tas_stack <- stack()
     hurs_stack <- stack()
     
-    bias <- rast(paste0("./climatedata/euro-cordex/yearly/summer_vpd/vpd_summer_", gcm, "_bias.tif"))
+    bias <- rast(paste0("./data/climate/cmip6/vpd_summer_", gcm, "_bias.tif"))
     
     
     for(y in 0:84){
       
       year <- 2015 + y
-      if(file.exists(paste0("./climatedata/euro-cordex/yearly/summer_vpd/vpd_summer_",year,"_", gcm, "_", s, "_cmip6_biascor.tif"))){next}
+      if(file.exists(paste0("./data/climate/cmip6/vpd_summer_",year,"_", gcm, "_", s, "_cmip6_biascor.tif"))){next}
       
       year_stack_tas <- stack()
       year_stack_hurs <- stack()
@@ -372,7 +369,7 @@ for(s in scenarios){
       vpd_biascor <- terra::project(vpd_biascor, proj_leae)
       
       #plot(vpd)
-      terra::writeRaster(vpd_biascor, paste0("./climatedata/euro-cordex/yearly/summer_vpd/vpd_summer_",year,"_", gcm, "_", s, "_cmip6_biascor.tif"), overwrite = T)
+      terra::writeRaster(vpd_biascor, paste0("./data/climate/cmip6/vpd_summer_",year,"_", gcm, "_", s, "_cmip6_biascor.tif"), overwrite = T)
       
       
     } # close years
@@ -391,13 +388,13 @@ for(s in scenarios){
 gcms <- c("CNRM-CM6-1-HR", "FIO-ESM-2-0", "CMCC-ESM2", "MPI-ESM1-2-LR", "EC-Earth3-Veg-LR") 
 for(g in gcms){
   
-  bias <- rast(paste0("./climatedata/euro-cordex/yearly/summer_vpd/vpd_summer_", gcm, "_bias.tif"))
+  bias <- rast(paste0("./data/climate/cmip6/vpd_summer_", gcm, "_bias.tif"))
   
   for(year in 1986:2014){
     
     print(year)
     
-    vpd <- rast(paste0("./climatedata/euro-cordex/yearly/summer_vpd/vpd_summer_",year,"_", g, "_historical_cmip6.tif"))
+    vpd <- rast(paste0("./data/climate/cmip6/vpd_summer_", year,"_", g, "_historical_cmip6.tif"))
     vpd <- terra::project(vpd, bias)
     vpd <- terra::crop(vpd, bias)
     vpd <- terra::mask(vpd, bias)
@@ -405,7 +402,7 @@ for(g in gcms){
     vpd_biascor <- vpd + bias   
     vpd_biascor <- terra::project(vpd_biascor, proj_leae)
     
-    terra::writeRaster(vpd_biascor, paste0("./climatedata/euro-cordex/yearly/summer_vpd/vpd_summer_",year,"_", g, "_historical_cmip6_biascor.tif"), overwrite = T)
+    terra::writeRaster(vpd_biascor, paste0("./data/climate/cmip6/vpd_summer_", year,"_", g, "_historical_cmip6_biascor.tif"), overwrite = T)
     
     
     
