@@ -1,6 +1,6 @@
-# firesize_publi
+# Modelling the effect of VPD on maximum fire size and severity in Europe
 
-code for the publication in GCB entitled: Increasing aridity causes larger and more severe forest fires across Europe
+code and data for the publication in GCB entitled: Increasing aridity causes larger and more severe forest fires across Europe
 
 
 
