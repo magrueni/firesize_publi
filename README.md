@@ -1,7 +1,11 @@
 # firesize_publi
+
 code for the publication in GCB entitled: Increasing aridity causes larger and more severe forest fires across Europe
 
+
+
 # scripts
+
 all scripts are in the folder "lib". In order to perform the full analysis, please follow through all scripts.
 we provide the results of some steps in order to reduce runtime for the user. we indicate this in the headings of the scripts.
 
@@ -23,6 +27,8 @@ The user needs a CDS API for downloading.
 8. Plotting of all figures that were not done in the previous scripts
 
 
+
+
 # data
 
 climate: we provide the climate grid. all other climate data can be downloaded following the instructions within the scripts.
@@ -36,3 +42,13 @@ ecoregions: Olson et al. terrestrial ecosystems should be downloaded from: https
 models: we provide all final models used for the analysis.
 
 results: we provide the results of the individual steps. This should help to reduce the runtime for the user.
+
+
+
+# additional information
+
+R version 3.6.3 (2020-02-29)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 18.04.5 LTS
+
+Raw data comes from the European forest disturbance maps and can be downloaded from https://doi.org/10.5281/zenodo.7080016
