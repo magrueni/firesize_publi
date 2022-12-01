@@ -1,6 +1,6 @@
-# Modelling the effect of VPD on maximum fire size and severity in Europe
+### Data and code for "increasing aridity causes larger and more severe forest fires across Europe"
 
-code and data for the publication in GCB entitled: Increasing aridity causes larger and more severe forest fires across Europe
+This repository holds code and data for the publication in GCB entitled: Increasing aridity causes larger and more severe forest fires across Europe (manuscript accepted)
 
 
 
@@ -16,7 +16,7 @@ The user needs a CDS API for downloading.
 
 3. calculation of the maximum fire size to total burned area relationship
 
-4. the models are calibrated and compared. In this script the figure 3 and 4 are created 
+4. the models are calibrated and compared. In this script the figure 3 and 4 are created 
 
 5. preparation of the future climate dataset. Again, the script for the download is provided but the user needs an API.
 
@@ -27,13 +27,11 @@ The user needs a CDS API for downloading.
 8. Plotting of all figures that were not done in the previous scripts
 
 
-
-
 # data
 
 climate: we provide the climate grid. all other climate data can be downloaded following the instructions within the scripts.
 
-complexes: we provide the fire complexes of each country. This data contains all information needed for the analysis including year, size, severity and polygon information.
+complexes: we provide the fire complexes of each country. This data contains all information needed for the analysis including year, size, severity and polygon information. The complexes are based on the data from Senf & Seidl, 2021 (https://doi.org/10.1038/s41893-020-00609-y) which can be downloaded here: https://doi.org/10.5281/zenodo.7080016
 
 countries: we provide the shapefiles of each country and Europe that are needed for the analysis in this folder.
 
@@ -44,11 +42,8 @@ models: we provide all final models used for the analysis.
 results: we provide the results of the individual steps. This should help to reduce the runtime for the user.
 
 
-
 # additional information
 
 R version 3.6.3 (2020-02-29)
 Platform: x86_64-pc-linux-gnu (64-bit)
 Running under: Ubuntu 18.04.5 LTS
-
-Raw data comes from the European forest disturbance maps and can be downloaded from https://doi.org/10.5281/zenodo.7080016
